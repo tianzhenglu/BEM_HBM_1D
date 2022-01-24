@@ -33,6 +33,9 @@ def HBM_p(point,force,cosmatrix):
 
 def calcDisplacementField(point):
     # Calculate displacemetn field during the priod
+    # Calc force/displacement at 0 if not calculated
+    if (not point.force0[0]) and (not point.displacement0[0]):
+        point.calc0()
     xa = np.arange(point.nx + 1)*point.dx #collocation points in space
     ka = np.arange(point.harmonics+1)*point.Omega/point.barsys.c
     ux = np.zeros((point.nx+1,point.nt))
@@ -41,11 +44,12 @@ def calcDisplacementField(point):
     for i in range(point.nx+1):
         x = xa[i]
         ux_amp = np.zeros(point.harmonics+1)
-        ux_amp[1:] = -np.sin(ka[1:]*x)*point.force0[1:]/(2*ka[1:]) \
-            -np.sin(ka[1:]*(L-x))*point.forceL[1:]/(2*ka[1:]) \
-            + np.cos(ka[1:]*(L-x))*point.displacementL[1:]/2
-        ux_amp[0] = x/L*(point.displacementL[1])
-        ux[[i],:] =  ux_amp@cosmatrix.transpose();
+        ux_amp[1:] = -np.sin(ka[1:]*x)*point.force0[1:]/(2*ka[1:])\
+            -np.sin(ka[1:]*(L-x))*point.forceL[1:]/(2*ka[1:])\
+            + np.cos(ka[1:]*(L-x))*point.displacementL[1:]/2\
+            + np.cos(ka[1:]*x)*point.displacement0[1:]/2
+        ux_amp[0] = x/L*(point.displacementL[0]-point.displacement0[0])+point.displacement0[0]
+        ux[[i],:] =  ux_amp@cosmatrix.transpose()
     return ux
     
 def calcEnergyResidualDS(point):
@@ -59,6 +63,7 @@ def calcEnergyResidualDS(point):
 
 def plot2D(point):
     # Plot displacmentL, forceL, signoriniL versus time
+    # Only use after calc0()
     plt.figure(1)
     ta = np.arange(point.nt)*point.dt
     cosmatrix = point.calcCosmatrix()
@@ -69,6 +74,7 @@ def plot2D(point):
     
 def plot3D(point):
     # Plot displacment field versus space and time
+    # Only use after calc0()
     ux=calcDisplacementField(point)
     fig = plt.figure(2)
     ax = fig.add_subplot(111, projection='3d')

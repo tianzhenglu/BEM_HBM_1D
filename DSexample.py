@@ -6,26 +6,27 @@ import numpy as np
 
 ## Define system of interest
 bar = DS.DSBarSystem()
-bar.g0 = 0.5;
+bar.g0 = 0.5
 
 ## Define DSinuation parameters and initialize result list
 Ta = np.arange(3.8,3.01,-0.001)
-result = [];
+result = []
 m = 40
 last_admissible_soln = np.zeros(m+1); 
-last_admissible_soln[1] = 1.5;
+last_admissible_soln[1] = 1.5
 
 ## Sequential continuation loop
 
 for i in range(len(Ta)):
     
-    newpoint = DS.HbmBemContinuationPoint(Ta[i],barsys = bar,rho =40,harmonics = m) 
+    newpoint = DS.HbmBemContinuationPoint(Ta[i],barsys = bar,rho =4,harmonics = m) 
     cosmatrix = newpoint.calcCosmatrix()
     nonlinearfunc = lambda disp: HBM.HBM_u(newpoint,disp,cosmatrix)
     
     result_temp = sop.root(nonlinearfunc,last_admissible_soln,method='hybr')
     newpoint.displacementL = result_temp.x
     newpoint.forceL = newpoint.calcForce(newpoint.displacementL)
+    newpoint.calc0()
 
     HBM.calcEnergyResidualDS(newpoint)
     result.append(newpoint)
@@ -58,3 +59,4 @@ plt.ylim([1e-1,1e3])
 # 2D plot
 HBM.plot2D(result_adm[300])
 HBM.plot3D(result_adm[300])
+plt.show()
