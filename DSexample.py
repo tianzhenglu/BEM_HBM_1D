@@ -55,4 +55,6 @@ ax = fig.add_subplot(111)
 ax.scatter(2*np.pi/Ta_adm,energy_adm)
 ax.set_yscale('log')
 plt.ylim([1e-1,1e3])
-
+# 2D plot
+HBM.plot2D(result_adm[300])
+HBM.plot3D(result_adm[300])
